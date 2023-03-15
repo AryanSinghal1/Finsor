@@ -15,7 +15,7 @@ function Register() {
     }else{
       user.role = adisor?1:2;
       console.log(user);
-      // await axios.post("http://localhost:8000/api/register", user);
+      await axios.post("http://localhost:8000/api/register", user);
     }
   }
   return (

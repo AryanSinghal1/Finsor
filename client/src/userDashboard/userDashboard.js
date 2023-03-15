@@ -14,12 +14,18 @@ import axios from "axios";
 // import { DateRangePicker } from "flowbite-datepicker";
 
 function UserDashboard() {
-  const user = useSelector((x) => x.counter.user);
+  const [user, setUser] = useState({});
   const [check, setCheck] = useState(true);
   const [advisors, setAdvisors] = useState([]);
   const getAdvisors = async () => {
     const getAdvData = await axios.get("http://localhost:8000/api/getAdv");
     setAdvisors(getAdvData.data);
+
+    const userid = localStorage.getItem("user");
+    const userDetails={
+      _id : JSON.parse(userid)
+    }
+const user = await axios.post("http://localhost:8000/api/getUser", userDetails).then(e=>{setUser(e.data[0]);});
   };
   useEffect(() => {
     getAdvisors();
@@ -30,21 +36,30 @@ function UserDashboard() {
     const advisorNo = Math.random() * (advisorLength-1);
     const numberAdv = Math.round(advisorNo);
     const data = {
+      advisorId: advisors[numberAdv]._id,
+      userId: user._id,
       advmail: advisors[numberAdv].email,
       // username: user.email,
-      username: "singh.avinash2363@gmail.com",
+      useName: user.name,
+      username: user.email,
       advName: advisors[numberAdv].name
     }
 
     await axios.post("http://localhost:8000/api/book",data).then(e=>window.alert(`An Appointment with ${data.advName} has been Requested`));
   }
   return (
-    <div className="flex-col h-[100vh] h-full w-full">
+    <div className="flex-col h-[100vh] w-full">
       <div className="flex bg-black flex justify-center items-center h-[10%] w-full">
-        <div className="flex items-center h-[90%] w-[95%]">
-          {/* <div className="flex items-center h-full w-1/5">
-        </div> */}
+        <div className="flex items-center justify-between h-[90%] w-[95%]">
           <h1 className="text-white text-2xl font-bold">Finsor</h1>
+          <div className="flex items-center h-full justify-between w-[15%]">
+          <p className="text-white text-xl"><a href="http://ashu-crypto-hunt.netlify.app">Crypto Track</a></p>
+          <img
+                    src={profile}
+                    alt="profile"
+                    className="h-8 w-8 roundedull"
+                  ></img>
+        </div>
           {/* <div className="flex h-1/2 items-center w-3/5">
           <div className="flex h-full w-1/6 justify-center items-center text-white text-md">
             <p>Overview</p>
@@ -314,6 +329,7 @@ function UserDashboard() {
                   {advisors.map((e) => {
                     return (
                       <AdvisorCard
+                      id={e._id}
                         name={e.name}
                         email={e.email}
                         ratings={"5"}

@@ -8,6 +8,7 @@ import Switch from "react-switch";
 import profile from '../images.jpeg'
 import star from '../star.png'
 import { useSelector } from "react-redux";
+import axios from "axios";
 // import { DateRangePicker } from "flowbite-datepicker";
 
 // qualification:{
@@ -21,7 +22,31 @@ import { useSelector } from "react-redux";
 
 function AdminDash() {
   const [check, setCheck] = useState(true);
-  const user = useSelector((x) => x.counter.user);
+  const [meetingDetails, setMeetingDetails] = useState([]);
+  // const user = useSelector((x) => x.counter.user);
+  const [user, setUser] = useState({});
+  const getmeetDetails = async() => {
+    const meetDetails = await axios.get('http://localhost:8000/api/meetDetails');
+    console.log(meetDetails.data);
+    const currMeetDetails = meetDetails.data?.filter((x=>x.advisor?._id==user._id))
+    setMeetingDetails(currMeetDetails);
+ 
+    const userid = localStorage.getItem("user");
+    const userDetails={
+      _id : JSON.parse(userid)
+    }
+const user = await axios.post("http://localhost:8000/api/getUser", userDetails).then(e=>{setUser(e.data[0]);});
+  }
+  const changeStatus = async()=>{
+    const data = {
+      advisor: user._id
+    }
+    await axios.post('http://localhost:8000/api/status', data).then(()=>{setCheck(!check); console.log("CHanged")});
+  }
+  useEffect(()=>{
+    getmeetDetails();
+  },[])
+  console.log(meetingDetails)
   const [pieChartData, setPieChartData] = useState({
   labels: Data.map((e) => e.month),
   datasets: [
@@ -181,7 +206,8 @@ plugins: {
             <button className="px-4 py-2 border border-black rounded-lg">Edit Profile</button>
             <div className="flex items-center"> 
               {check?<p>Available</p>:<p>Unavailable</p>}
-            <Switch className="m-2" checked={check} onChange={()=>{setCheck(!check)}} onColor={'#000000'} checkedIcon={false} height={15} width={30} uncheckedIcon={false} />
+            <Switch className="m-2" checked={check} onChange={()=>{setCheck(!check);
+            changeStatus()}} onColor={'#000000'} checkedIcon={false} height={15} width={30} uncheckedIcon={false} />
             </div>
             <div className="w-[80%] my-10">
               <p className="font-semibold text-lg">Recent Reviews</p>
@@ -393,132 +419,29 @@ plugins: {
               <h2 className="text-2xl">Upcoming Meetings</h2>
               <div className="my-2 h-1/3 full flex flex-wrap justify-center items-center">
                 <div className="h-[98%] w-full flex flex-wrap">
-                  <div className="w-[31%] m-1 h-full border border-slate-600 rounded-lg flex">
-                    <div className="w-[40%] h-full bg-black flex flex-col justify-center items-center">
-                      <div className="w-[70%] h-1/2 my-[10px] bg-white rounded-full overflow-hidden">
-                        <img src={profile} alt="meet" className="w-full h-full cover"></img>
-                      </div>
-                      <p className="text-white">John Doe</p>
+                {meetingDetails.map((e)=>{
+                  return <div className="w-[31%] m-1 h-full border border-slate-600 rounded-lg flex">
+                  <div className="w-[40%] h-full bg-black flex flex-col justify-center items-center">
+                    <div className="w-[70%] h-1/2 my-[10px] bg-white rounded-full overflow-hidden">
+                      <img src={profile} alt="meet" className="w-full h-full cover"></img>
                     </div>
-                    <div className="w-[60%] h-full flex justify-center items-center">
-                <div className="h-[90%] w-[90%] flex flex-col justify-between items-center">
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Date</p>
-                  <p className="text-md">10/03/2023</p>
+                    <p className="text-white">{e.user.name}</p>
                   </div>
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Time</p>
-                  <p className="text-md">09:00 A.M.</p>
+                  <div className="w-[60%] h-full flex justify-center items-center">
+              <div className="h-[90%] w-[90%] flex flex-col justify-between items-center">
+              <div className="h-[20%] w-full">
+                <p className="text-lg font-semibold">Meeting Date</p>
+                <p className="text-md">10/03/2023</p>
+                </div>
+              <div className="h-[20%] w-full">
+                <p className="text-lg font-semibold">Meeting Time</p>
+                <p className="text-md">09:00 A.M.</p>
+                </div>
+                <button className="border border-[rgba(0,0,0,0.15)] px-3 rounded-md">Join Meeting</button>
                   </div>
-                  <button className="border border-[rgba(0,0,0,0.15)] px-3 rounded-md">Join Meeting</button>
-                    </div>
-                    </div>
                   </div>
-                  <div className="w-[31%] m-1 h-full border border-slate-600 rounded-lg flex">
-                    <div className="w-[40%] h-full bg-black flex flex-col justify-center items-center">
-                      <div className="w-[70%] h-1/2 my-[10px] bg-white rounded-full overflow-hidden">
-                        <img src={profile} alt="meet" className="w-full h-full cover"></img>
-                      </div>
-                      <p className="text-white">John Doe</p>
-                    </div>
-                    <div className="w-[60%] h-full flex justify-center items-center">
-                    <div className="h-[90%] w-[90%] flex flex-col justify-between items-center">
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Date</p>
-                  <p className="text-md">10/03/2023</p>
-                  </div>
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Time</p>
-                  <p className="text-md">10:00 A.M.</p>
-                  </div>
-                  <button className="border border-[rgba(0,0,0,0.15)] px-3 rounded-md">Join Meeting</button>
-                    </div>
-                    </div>
-                  </div>
-                  <div className="w-[31%] m-1 h-full border border-slate-600 rounded-lg flex">
-                    <div className="w-[40%] h-full bg-black flex flex-col justify-center items-center">
-                      <div className="w-[70%] h-1/2 my-[10px] bg-white rounded-full overflow-hidden">
-                        <img src={profile} alt="meet" className="w-full h-full cover"></img>
-                      </div>
-                      <p className="text-white">John Doe</p>
-                    </div>
-                    <div className="w-[60%] h-full flex justify-center items-center">
-                    <div className="h-[90%] w-[90%] flex flex-col justify-between items-center">
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Date</p>
-                  <p className="text-md">10/03/2023</p>
-                  </div>
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Time</p>
-                  <p className="text-md">11:30 A.M.</p>
-                  </div>
-                  <button className="border border-[rgba(0,0,0,0.15)] px-3 rounded-md">Join Meeting</button>
-                    </div>
-                    </div>
-                  </div>
-                  <div className="w-[31%] m-1 h-full border border-slate-600 rounded-lg flex">
-                    <div className="w-[40%] h-full bg-black flex flex-col justify-center items-center">
-                      <div className="w-[70%] h-1/2 my-[10px] bg-white rounded-full overflow-hidden">
-                        <img src={profile} alt="meet" className="w-full h-full cover"></img>
-                      </div>
-                      <p className="text-white">John Doe</p>
-                    </div>
-                    <div className="w-[60%] h-full flex justify-center items-center">
-                    <div className="h-[90%] w-[90%] flex flex-col justify-between items-center">
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Date</p>
-                  <p className="text-md">10/03/2023</p>
-                  </div>
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Time</p>
-                  <p className="text-md">01:00 P.M.</p>
-                  </div>
-                  <button className="border border-[rgba(0,0,0,0.15)] px-3 rounded-md">Join Meeting</button>
-                    </div>
-                    </div>
-                  </div>
-                  <div className="w-[31%] m-1 h-full border border-slate-600 rounded-lg flex">
-                    <div className="w-[40%] h-full bg-black flex flex-col justify-center items-center">
-                      <div className="w-[70%] h-1/2 my-[10px] bg-white rounded-full overflow-hidden">
-                        <img src={profile} alt="meet" className="w-full h-full cover"></img>
-                      </div>
-                      <p className="text-white">John Doe</p>
-                    </div>
-                    <div className="w-[60%] h-full flex justify-center items-center">
-                    <div className="h-[90%] w-[90%] flex flex-col justify-between items-center">
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Date</p>
-                  <p className="text-md">10/03/2023</p>
-                  </div>
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Time</p>
-                  <p className="text-md">02:00 P.M.</p>
-                  </div>
-                  <button className="border border-[rgba(0,0,0,0.15)] px-3 rounded-md">Join Meeting</button>
-                    </div>
-                    </div>
-                  </div>
-                  <div className="w-[31%] m-1 h-full border border-slate-600 rounded-lg flex">
-                    <div className="w-[40%] h-full bg-black flex flex-col justify-center items-center">
-                      <div className="w-[70%] h-1/2 my-[10px] bg-white rounded-full overflow-hidden">
-                        <img src={profile} alt="meet" className="w-full h-full cover"></img>
-                      </div>
-                      <p className="text-white">John Doe</p>
-                    </div>
-                    <div className="w-[60%] h-full flex justify-center items-center">
-                    <div className="h-[90%] w-[90%] flex flex-col justify-between items-center">
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Date</p>
-                  <p className="text-md">11/03/2023</p>
-                  </div>
-                <div className="h-[20%] w-full">
-                  <p className="text-lg font-semibold">Meeting Time</p>
-                  <p className="text-md">02:00 P.M.</p>
-                  </div>
-                  <button className="border border-[rgba(0,0,0,0.15)] px-3 rounded-md">Join Meeting</button>
-                    </div>
-                    </div>
-                  </div>
+                </div> 
+                })}
                 </div>
               </div>
               {/* <div className="h-1/2 w-full flex justify-center items-center rounded-xl bg-white">

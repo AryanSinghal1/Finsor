@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
             type:Number,
           
         },
+    limit:{
+            type:Number,
+         default:"Not Set" 
+        },
     date:{
             type:String,
             default: currentDate

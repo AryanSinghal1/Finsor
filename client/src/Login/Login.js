@@ -2,9 +2,10 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { useDispatch } from 'react-redux'
 import {userLogin} from '../Redux/Slices'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Login() {
+  const navigate = useNavigate();
   const [adisor, setAdvisor] = useState(true);
   const [user, setUser] = useState({});
   const dispatch = useDispatch();
@@ -15,10 +16,11 @@ function Login() {
     e.preventDefault();
     console.log(user);
     user.role = adisor?1:2;
-    await axios.post("http://localhost:8000/api/login", user).then((e)=>{dispatch(userLogin(e.data.loginUser))}) }
+    await axios.post("http://localhost:8000/api/login", user).then((e)=>{dispatch(userLogin(e.data.loginUser));
+    localStorage.setItem("user", JSON.stringify(e.data.loginUser._id))
+    if(!adisor){navigate("/user")}else{navigate("/advisor")}}) }
   return (
-    
-    <div className='w-[80%] m-auto h-screen flex flex-col items-center'>
+      <div className='w-[80%] m-auto h-screen flex flex-col items-center'>
       <div className='h-[10%] w-full bg-white flex justify-between items-center'>
         <h2 className='text-[30px] font-semibold'>Finsor</h2>
         <div></div>

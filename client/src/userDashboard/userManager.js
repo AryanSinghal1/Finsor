@@ -9,9 +9,58 @@ import star from '../star.png'
 import edit from '../pencil.jpg'
 import profile from '../images.jpeg'
 import AdvisorCard from "./AdvisorCard";
+import { useSelector } from "react-redux";
+import axios from "axios";
 
 function UserManager() {
+const [income, setIncome] = useState(true);
+const [user, setUser] = useState({});
+const [set, setSet] = useState(false);
+const [limituser, setLimitUser] = useState({});
+const [totalIncome, setTotalIncome] = useState(0);
+const [totalExpense, setTotalExpense] = useState(0);
+const [show, setShow] = useState(false);
+const [details, setDetails] = useState({});
 
+const getFinances = async() => {
+  const financeData = await axios.get("http://localhost:8000/api/expense");
+  console.log(financeData.data);
+  const incomeData = financeData.data.incomes.map(x=>x.amount);
+  const expensesData = financeData.data.expenses.map(x=>x.amount);
+  console.log(incomeData, expensesData);
+  const expenses = expensesData.reduce((partialSum, a) => partialSum + a, 0);
+setTotalExpense(expenses); 
+const incomes = incomeData.reduce((partialSum, a) => partialSum + a, 0);
+setTotalIncome(incomes); 
+const userid = localStorage.getItem("user");
+const userDetails={
+  _id : JSON.parse(userid)
+}
+const user = await axios.post("http://localhost:8000/api/getUser", userDetails).then(e=>{setUser(e.data[0]);});
+}
+console.log(user);
+useEffect(()=>{
+  getFinances();
+},[]);
+const handleChange = (e) => {
+  setDetails({...details, [e.target.name]:e.target.value});
+}
+const handleLimitChange = (e) => {
+  setLimitUser({...limituser, [e.target.name]:e.target.value});
+}
+const handleLimitSubmit = async (e) =>{
+  e.preventDefault();
+  const id = localStorage.getItem("user")
+  limituser.user = JSON.parse(id);
+  await axios.post("http://localhost:8000/api/addaLimit", limituser).then((e)=>{console.log("Updated")})
+}
+const handleSubmit = async (e) =>{
+  e.preventDefault();
+  details.type = income?1:2;
+  details.user = user._id;
+  details.expense = totalExpense;
+  await axios.post("http://localhost:8000/api/addDetail", details).then((e)=>{console.log("Updated")})
+}
 const [pieChartData, setPieChartData] = useState({
     labels: Data.map((e) => e.month),
     datasets: [
@@ -120,9 +169,53 @@ const [pieChartData, setPieChartData] = useState({
   },
   });
   return (
-    <div className="flex-col min-h-screen h-[130vh] w-full">
+    <div className="flex-col min-h-screen h-[130vh] w-full relative">
+      {set && <div className="h-screen bg-[rgba(0,0,0,0.2)] w-full bg-white flex justify-center items-center overflow-hidden absolute top-0 left-0" >
+         <div className="w-[30vw] h-[30vh] flex justify-center items-center bg-white rounded-lg">
+        <div className="w-[90%] h-[90%] ">
+          <div className="h-1/3 w-full flex justify-between">
+            <h2 className="text-lg font-bold">Set Limit</h2>
+            <p className="font-bold cursor-pointer" onClick={()=>{setSet(false)}}>X</p>
+          </div>
+          <div className="h-2/3 w-full flex justify-between">
+            <form onChange={(e)=>{handleLimitChange(e)}} onSubmit={(e)=>{handleLimitSubmit(e)}} className="h-full w-full flex flex-col justify-between">
+              <label>Set Limit</label>
+              <input name="limit" placeholder="Enter Limit"></input>
+              <input type="submit" value="Update Limit" className="px-4 py-2 bg-black text-white rounded-md"></input>
+            </form>
+          </div>
+        </div>
+        </div>
+      </div>}
+    {show && <div className="h-screen bg-[rgba(0,0,0,0.2)] w-full bg-white flex justify-center items-center overflow-hidden absolute top-0 left-0" >
+    <div className='w-[30vw] h-[60vh] bg-white rounded-lg relative flex flex-col justify-center items-center overflow-hidden'>
+      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[rgba(0,0,0,0.2)] flex justify-center items-center cursor-pointer" onClick={()=>{setShow(false)}}><p className="text-xl font-bold">X</p></div>
+    <div className='w-full h-[15%]  flex justify-center items-center'>
+    {income?<><div className='w-1/2 h-full rounded-br-md bg-black flex justify-center cursor-pointer items-center'>
+          <h2 className='text-white'>Income</h2>
+        </div>
+        <div className='h-full w-1/2 flex justify-center items-center cursor-pointer' onClick={()=>{setIncome(false)}}>
+          <h2>Expense</h2>
+        </div></>:<><div onClick={()=>{setIncome(true)}} className='w-1/2 h-full cursor-pointer flex justify-center items-center'>
+          <h2>Income</h2>
+        </div>
+        <div className='h-full bg-black text-white rounded-bl-md w-1/2 flex justify-center cursor-pointer items-center'>
+          <h2>Expense</h2>
+        </div></>}
+      </div>
+    <div className='w-full h-[85%] flex flex-col justify-center items-center'>
+      <form className='h-full w-[90%] flex flex-col justify-around' onChange={(e)=>{handleChange(e)}} onSubmit={(e)=>{handleSubmit(e)}}>
+        <label>Enter Title</label>
+        <input name='title' type="text" placeholder='Enter Title'></input>
+          <label>Enter Amount</label>
+        <input name='amount' type="text" placeholder='Enter Amount'></input>
+        <input className='p-2 bg-black text-white rounded-md' type="submit" value="Submit"></input>
+      </form>
+    </div>
+    </div>
+    </div>}
     <div className="flex bg-black flex justify-center items-center h-[10%] w-full">
-      <div className="flex items-center h-[90%] w-[95%]">
+      <div className="flex items-center h-[90%] w-[95%] justify-between">
         {/* <div className="flex items-center h-full w-1/5">
         </div> */}
           <h1 className="text-white text-2xl font-bold">Finsor</h1>
@@ -149,6 +242,7 @@ const [pieChartData, setPieChartData] = useState({
         <div className="flex items-center justify-end h-full w-1/5">
            <img className="w-12 h-12" src={CineLogo}></img> */}
         {/* </div> */}
+        <p className="text-white text-xl"><a href="http://ashu-crypto-hunt.netlify.app">Crypto Track</a></p>
       </div>
     </div>
     <div className="flex h-[96%] w-full bg-background justify-center items-center">
@@ -161,15 +255,15 @@ const [pieChartData, setPieChartData] = useState({
           </div>
           </div>
           <div className="flex py-[15px]">
-          <h2 className="text-xl font-semibold px-2">Harry Watson</h2>
+          <h2 className="text-xl font-semibold px-2">{user.name}</h2>
           {/* <div className="flex items-center">
           <p className="text-xl">5</p><img src={star} className="w-[20px] h-[20px]"></img>
           </div> */}
           </div>
           <button className="px-4 py-2 border border-black rounded-lg">Edit Profile</button>
           <div className="flex items-center">
-          <p className="font-semibold p-2">Monthly Limit: <span className="font-normal">Rs. 4000</span></p>
-          <img className="w-4 h-4" src={edit}></img>
+          <p className="font-semibold p-2">Monthly Limit: <span className="font-normal">Rs. {user.limit}</span></p>
+          <img onClick={()=>{setSet(true)}} className="w-4 h-4" src={edit}></img>
           </div>
           
           {/* <div className="flex items-center">
@@ -242,12 +336,15 @@ const [pieChartData, setPieChartData] = useState({
               <div className="flex flex-col justify-between items-start h-full w-full">
                 <div className="h-1/4 w-full flex justify-between items-center">
                   <h1 className="text-2xl font-bold">Dashboard</h1>
+                  <div>
+                    <button className="px-4 py-2 border border-slate-600 rounded-md mx-2" onClick={()=>{setShow(true)}}>Create</button>
                   <select className="px-2 py-1 rounded-lg bg-[rgba(0,0,0,0.05)]">
                     <option>This Month</option>
                     <option>Last Month</option>
                     <option>Last 3 Months</option>
                     <option>This Year</option>
                   </select>
+                  </div>
                 </div>
                 <div className="flex w-full h-[25vh] justify-between items-center">
                 <div className="h-full w-[32%] flex justify-center items-center rounded-lg bg-[rgba(0,0,0,0.03)]">
@@ -255,11 +352,11 @@ const [pieChartData, setPieChartData] = useState({
                 <p className="text-xl font-bold">Overview</p>
                     <p className="text-slate-600">This Month</p>
                 <div className=" w-full h-2/3 flex flex-col justify-center items-center">
-                    <p className="text-3xl">Rs. 1500</p>
+                    <p className="text-3xl">Rs. {totalIncome-totalExpense}</p>
                 </div>
                 <div className=" w-full h-1/3 flex justify-center items-center">
                   <div className=" w-1/2 h-full flex justify-center items-center">
-                    <p className="text-sm text-green-600">Rs. 4,000</p>
+                    <p className="text-sm text-green-600">Rs. {totalIncome}</p>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -276,7 +373,7 @@ const [pieChartData, setPieChartData] = useState({
                     </svg>
                   </div>
                   <div className=" w-1/2 h-full flex justify-center items-center">
-                    <p className="text-sm text-red-600">Rs. 2500</p>
+                    <p className="text-sm text-red-600">Rs. {totalExpense}</p>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -300,7 +397,7 @@ const [pieChartData, setPieChartData] = useState({
                 <p className="text-xl font-bold">Income</p>
                     {/* <p className="text-slate-600">This Month</p> */}
                 <div className=" w-full h-2/3 flex flex-col justify-center items-center">
-                    <p className="text-3xl">Rs. 4000</p>
+                    <p className="text-3xl">Rs. {totalIncome}</p>
                 </div>
                   </div>
                 </div>
@@ -309,7 +406,7 @@ const [pieChartData, setPieChartData] = useState({
                 <p className="text-xl font-bold">Expenses</p>
                     {/* <p className="text-slate-600">This Month</p> */}
                 <div className=" w-full h-2/3 flex flex-col justify-center items-center">
-                    <p className="text-3xl">Rs. 2500</p>
+                    <p className="text-3xl">Rs. {totalExpense}</p>
                 </div>
                   </div>
                 </div>

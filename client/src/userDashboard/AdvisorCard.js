@@ -7,11 +7,16 @@ function AdvisorCard(props) {
   const user = useSelector(x=>x.counter.user)
   const bookMeeting=async()=>{
     const data = {
+      advisorId: props.id,
       // username: user.email,
-      username: "singh.avinash2363@gmail.com",
+      userId: user._id,
+      useName: user.name,
+      username: user.email,
       advName: props.name,
       advmail: props.email
+
     }
+
     await axios.post("http://localhost:8000/api/book",data).then(e=>console.log(e));
   }
   return (

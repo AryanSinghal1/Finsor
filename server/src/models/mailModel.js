@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const currentDate = new Date();
-const mailSchema = new mongoose.Schema({
-    userName:{
-            type: String,
+const meetSchema = new mongoose.Schema({
+    user:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user"
         },
-    advisorName:{
-            type: String,
+    advisor:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "advisor"
         },
         time:{
             type:String,
@@ -16,5 +18,5 @@ const mailSchema = new mongoose.Schema({
         },
 })
 
-const mail = new mongoose.model('mails', mailSchema);
-module.exports = mail;
+const meet = new mongoose.model('meet', meetSchema);
+module.exports = meet;

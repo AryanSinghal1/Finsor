@@ -15,7 +15,8 @@ const advisorSchema = new mongoose.Schema({
             default:"Financial Advisor"
         },
         earnings:{
-            type:Number
+            type:Number,
+            default:0
         },
         bankDetails:{
             type:Number
